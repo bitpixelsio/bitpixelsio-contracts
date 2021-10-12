@@ -1,10 +1,10 @@
 # Welcome to the Bitpixel Contracts!
 
-BitPixels 100x100 NFT pixels where users can buy and rent out their pixels for advertising, investment, and fun. It is the 1st rentable NFT Pixel project on Blockchain!
+BitPixels is a 100x100 online NFT Billboard where people can advertise anything by showing any picture on their pixels. It is the 1st rentable NFT Pixel project on Blockchain!
 
-BitPixels are fully onchain NFTs, powered by the ERC721 standards. The contracts also implement the EIP2525 Diamonds standard, which allows for modular upgradeability. 
+BitPixels is fully onchain NFTs, powered by the ERC721 standards. The contracts also implement the EIP2525 Diamonds standard, which allows for modular upgradeability. 
 
-BitPixels are one of the world's first rentable NFTs, with onchain renting system. Only data which will be offchain is high-resolution image data that will be shown on 100x100 grid. 
+BitPixels is one of the world's first rentable NFTs, with onchain renting system. Only data which will be offchain is high-resolution image data that will be shown on 100x100 grid. 
 
 We also have a very friendly and exciting community in crypto, so don't hesitate to get engaged!
 
