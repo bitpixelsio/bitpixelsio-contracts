@@ -18,7 +18,7 @@ contract ReaderFacet is IERC173, ReentrancyGuard {
         LibDiamond.enforceIsContractOwner();
         s.feeReceiver = payable(LibDiamond.contractOwner());
         s.feePercentage = 150;
-        s.baseUri = AppConstants.isTestMode != 1 ? "https://bitpixels.io/token/" : "https://bitpixels-test.web.app/token/";
+        s.baseUri = "ipfs://QmRNA5p6Rvxxot2v9vysjGKmMvwaYt954irYBG4hWSojcn/";
         s._name = "Bitpixels for Avax";
         s._symbol = "BITPIXELS";
         s.limitMinDaysToRent = 30;
