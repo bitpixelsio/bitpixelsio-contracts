@@ -30,8 +30,6 @@ Below are the deployed Contracts for Avalanche Mainnet:
 -Not ready
 
 ## TODO
-* Add royalties for renting system
-* Reserve some pixels for team
 * Deploy to mainnet
 
 ## Resources
