@@ -4,6 +4,8 @@ pragma solidity ^0.8.0;
 import "./LibAppStorage.sol";
 import "./DateTime.sol";
 import "./LibMeta.sol";
+import "./LibMarket.sol";
+import "./LibReflection.sol";
 import "./LibERC721.sol";
 import "../interfaces/IRentablePixel.sol";
 
@@ -49,9 +51,13 @@ library LibRent {
         if(rentTotal > 0){
             require(s.totalLockedValue >= rentTotal, "Locked value is low then expected");
             s.totalLockedValue -= rentTotal;
-            payable(pixelOwner).transfer(rentTotal);
+            uint256 reflection = LibReflection._splitBalance(rentTotal);
+            uint256 fee = LibMarket.serviceFee(rentTotal);
+            payable(pixelOwner).transfer(rentTotal - fee);
+            s.feeReceiver.transfer(fee - reflection);
+            return rentTotal - fee;
         }
-        return rentTotal;
+        return 0;
     }
 
     function calculateRentCost(IRentablePixel.RentData memory data, uint256 startTimestamp, uint256 endTimestamp) internal pure returns(uint256){

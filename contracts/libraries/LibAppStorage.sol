@@ -8,6 +8,8 @@ library AppConstants{
     uint256 constant isTestMode = 1;
     uint256 constant publicPrice = isTestMode == 1 ? 1000000000000000 : 1000000000000000000; // 1 AVAX
     uint256 constant dayInSeconds = isTestMode == 1 ? 1 : 86400;
+    uint256 constant _NOT_ENTERED = 1;
+    uint256 constant _ENTERED = 2;
 }
 
 struct AppStorage {
@@ -24,7 +26,7 @@ struct AppStorage {
     uint256[] _allTokens;
     mapping(uint256 => uint256) _allTokensIndex;
     //ERC721URIStorage
-    mapping(uint256 => string) _tokenURIs;
+    mapping(uint256 => string) _tokenURIs;//not used
 
     uint256 isSaleStarted;
     string baseUri;
@@ -43,6 +45,12 @@ struct AppStorage {
     uint32 limitMaxDaysToRent;
     uint32 limitMinDaysBeforeRentCancel;
     uint32 limitMaxDaysForRent;
+    uint256 _status;
+    uint256 reflectionBalance;
+    uint256 totalDividend;
+    mapping(uint256 => uint256) lastDividendAt;
+    uint256 reflectionPercentage;
+    uint256 currentReflectionBalance;
 }
 
 library LibAppStorage {
@@ -54,5 +62,17 @@ library LibAppStorage {
 
     function abs(int256 x) internal pure returns (uint256) {
         return uint256(x >= 0 ? x : -x);
+    }
+}
+
+interface ReentrancyGuard{
+    modifier nonReentrant() {
+        require(LibAppStorage.diamondStorage()._status != AppConstants._ENTERED, "ReentrancyGuard: reentrant call");
+
+        LibAppStorage.diamondStorage()._status = AppConstants._ENTERED;
+
+        _;
+
+        LibAppStorage.diamondStorage()._status = AppConstants._NOT_ENTERED;
     }
 }

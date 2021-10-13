@@ -22,7 +22,7 @@ Below are the deployed Contracts for Fuji Testnet:
 * Fuji Testnet DiamondLoupeFacet Address: 0x9c183Dc7e8ca0d65552cB34Bd2a6febBe6Df6cF2 <a href="https://cchain.explorer.avax-test.network/address/0x9c183Dc7e8ca0d65552cB34Bd2a6febBe6Df6cF2/contracts">View on Avax Explorer </a>
 * Fuji Testnet BitpixelsD2Facet Address: 0x14B5571Db7D7cc8aFC1E3DFB5416edBf69081BcC <a href="https://cchain.explorer.avax-test.network/address/0x14B5571Db7D7cc8aFC1E3DFB5416edBf69081BcC/contracts">View on Avax Explorer </a>
 * Fuji Testnet RentFacet Address: 0x04f2F9C93502505BE0b4b8C26004b9Bc74abD019 <a href="https://cchain.explorer.avax-test.network/address/0x04f2F9C93502505BE0b4b8C26004b9Bc74abD019/contracts">View on Avax Explorer </a>
-* Fuji Testnet ReaderFacet Address: 0xadA6B429deFBFF15ad6aa08DE25a6fF02253f6E6 <a href="https://cchain.explorer.avax-test.network/address/0xadA6B429deFBFF15ad6aa08DE25a6fF02253f6E6/contracts">View on Avax Explorer </a>
+* Fuji Testnet ReaderFacet Address: 0x9FBf701A28995b2F9f2231b6898E3d2F8187D060 <a href="https://cchain.explorer.avax-test.network/address/0x9FBf701A28995b2F9f2231b6898E3d2F8187D060/contracts">View on Avax Explorer </a>
 * Fuji Testnet MarketFacet Address: 0xa9A8c93339a4414511b30acA6FA5ee30ad92101C <a href="https://cchain.explorer.avax-test.network/address/0xa9A8c93339a4414511b30acA6FA5ee30ad92101C/contracts">View on Avax Explorer </a>
 
 Below are the deployed Contracts for Avalanche Mainnet:

@@ -33,10 +33,10 @@ async function main () {
   selectors = getSelectors(util.getRentFacetContract())
   result = await util.getDiamondLoupeFacetContract().facetFunctionSelectors(facetAddresses[3])
   assert.sameMembers(result, selectors)
-  selectors = getSelectors(util.getMarketFacetContract())
+  selectors = getSelectors(util.getReaderFacetContract())
   result = await util.getDiamondLoupeFacetContract().facetFunctionSelectors(facetAddresses[4])
   assert.sameMembers(result, selectors)
-  selectors = getSelectors(util.getReaderFacetContract())
+  selectors = getSelectors(util.getMarketFacetContract())
   result = await util.getDiamondLoupeFacetContract().facetFunctionSelectors(facetAddresses[5])
   assert.sameMembers(result, selectors)
 
@@ -58,20 +58,20 @@ async function main () {
   )
   assert.equal(
     facetAddresses[4],
-    await util.getDiamondLoupeFacetContract().facetAddress('0x11efbf61')
+    await util.getDiamondLoupeFacetContract().facetAddress('0x3d0630a6')
   )
   assert.equal(
     facetAddresses[5],
-    await util.getDiamondLoupeFacetContract().facetAddress('0x3d0630a6')
+    await util.getDiamondLoupeFacetContract().facetAddress('0x11efbf61')
   )
 
   assert.equal(
     "Bitpixels for Avax",
-    await util.getBitpixelsD2FacetContract().name()
+    await util.getReaderFacetContract().name()
   )
   assert.equal(
     "BITPIXELS",
-    await util.getBitpixelsD2FacetContract().symbol()
+    await util.getReaderFacetContract().symbol()
   )
   assert.equal(
     await util.getReaderFacetContract().owner(),

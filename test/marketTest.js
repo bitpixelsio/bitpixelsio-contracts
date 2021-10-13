@@ -24,9 +24,12 @@ describe("Bitpixels ERC", async function () {
     await util.getMarketFacetContract().setFeePercentage(100);
     //Check fee percentage has changed
     assert.equal(100, parseInt(await util.getMarketFacetContract().getFeePercentage(), 10), "Fee is not changed")
-    //Change fee percentage to %3
+    //Change fee percentage to %15
     const feePercentage = 150
     await util.getMarketFacetContract().setFeePercentage(feePercentage);
+    //Change reflection percentage to %15
+    const reflectionPercentage = 200
+    await util.getReaderFacetContract().setReflectionPercentage(reflectionPercentage);
 
     //Check other accounts can't change fee
     try{
@@ -35,6 +38,14 @@ describe("Bitpixels ERC", async function () {
       autResult = 1
     }
     assert.equal(1, autResult, 'fee cannot be changed by others')
+
+    //Check other accounts can't change fee
+    try{
+      await util.getMarketFacetContract().connect(accounts[1]).setReflectionPercentage(reflectionPercentage)
+    }catch (e) {
+      autResult = 2
+    }
+    assert.equal(2, autResult, 'ref fee cannot be changed by others')
 
     //Check sale is not started initially
     assert.equal(0, parseInt(await util.getReaderFacetContract().getSaleStarted(), 10))
@@ -46,9 +57,9 @@ describe("Bitpixels ERC", async function () {
     try{
       await util.getReaderFacetContract().connect(accounts[1]).flipSale()
     }catch (e) {
-      autResult = 2
+      autResult = 3
     }
-    assert.equal(2, autResult, 'sale cannot be changed by others')
+    assert.equal(3, autResult, 'sale cannot be changed by others')
 
     //Check initial fee receiver is contract owner
     assert.equal(await util.getMarketFacetContract().getFeeReceiver(), accounts[0].address, 'fee receiver not owner')
@@ -60,35 +71,35 @@ describe("Bitpixels ERC", async function () {
     try{
       await util.getMarketFacetContract().connect(accounts[1]).setFeeReceiver(accounts[2].address)
     }catch (e) {
-      autResult = 3
+      autResult = 4
     }
-    assert.equal(3, autResult, 'fee receiver cannot be changed by others')
+    assert.equal(4, autResult, 'fee receiver cannot be changed by others')
 
     //Get balance in acc2
     const balanceAddr2 = await ethers.provider.getBalance(accounts[2].address);
 
     //Claim some tokens for acc3 and acc4
     let amount = 2;
-    await util.getBitpixelsD2FacetContract().connect(accounts[3]).claim(5,5,amount,1, {value: ethers.utils.parseEther((amount * price).toString())})
-    await util.getBitpixelsD2FacetContract().connect(accounts[4]).claim(50,50,amount,1, {value: ethers.utils.parseEther((amount * price).toString())})
+    await util.getBitpixelsD2FacetContract().connect(accounts[3]).claim(20,20,amount,1, {value: ethers.utils.parseEther((amount * price).toString())})
+    await util.getBitpixelsD2FacetContract().connect(accounts[4]).claim(60,60,amount,1, {value: ethers.utils.parseEther((amount * price).toString())})
 
     //Stop sale
     await util.getReaderFacetContract().flipSale();
     //Check claim is not available when sale stopped
     try{
-      await util.getBitpixelsD2FacetContract().connect(accounts[3]).claim(15,15,amount,1, {value: ethers.utils.parseEther((amount * price).toString())})
-    }catch (e) {
-      autResult = 4
-    }
-    assert.equal(4, autResult, 'Claim should not be available for sale')
-
-    //Check market is not available when sale stopped
-    try{
-      await util.getMarketFacetContract().connect(accounts[3]).setTokenPrice(util.getPixelIds(5,5,amount,1)[0],  ethers.utils.parseEther((amount * price * 4).toString()))
+      await util.getBitpixelsD2FacetContract().connect(accounts[3]).claim(25,25,amount,1, {value: ethers.utils.parseEther((amount * price).toString())})
     }catch (e) {
       autResult = 5
     }
-    assert.equal(5, autResult, 'Token pricing should not be available for sale')
+    assert.equal(5, autResult, 'Claim should not be available for sale')
+
+    //Check market is not available when sale stopped
+    try{
+      await util.getMarketFacetContract().connect(accounts[3]).setTokenPrice(util.getPixelIds(20,20,amount,1)[0],  ethers.utils.parseEther((amount * price * 4).toString()))
+    }catch (e) {
+      autResult = 6
+    }
+    assert.equal(6, autResult, 'Token pricing should not be available for sale')
 
     //Restart sale
     await util.getReaderFacetContract().flipSale();
@@ -96,19 +107,19 @@ describe("Bitpixels ERC", async function () {
 
     //Check only owners can start sale for tokens
     try{
-      await util.getMarketFacetContract().connect(accounts[4]).setTokenPrice(util.getPixelIds(5,5,amount,1)[0],  ethers.utils.parseEther((amount * price * 4).toString()))
+      await util.getMarketFacetContract().connect(accounts[4]).setTokenPrice(util.getPixelIds(20,20,amount,1)[0],  ethers.utils.parseEther((amount * price * 4).toString()))
     }catch (e) {
-      autResult = 6
+      autResult = 7
     }
-    assert.equal(6, autResult, 'Token pricing should not be available from another account')
+    assert.equal(7, autResult, 'Token pricing should not be available from another account')
 
     //Start sale for token 1 and 3(claimed amount was 2)
-    await util.getMarketFacetContract().connect(accounts[3]).setTokenPrice(util.getPixelIds(5,5,amount,1)[0],  ethers.utils.parseEther((amount * price * 4).toString()))
-    await util.getMarketFacetContract().connect(accounts[4]).setTokenPrice(util.getPixelIds(50,50,amount,1)[0],  ethers.utils.parseEther((amount * price * 6).toString()))
+    await util.getMarketFacetContract().connect(accounts[3]).setTokenPrice(util.getPixelIds(20,20,amount,1)[0],  ethers.utils.parseEther((amount * price * 4).toString()))
+    await util.getMarketFacetContract().connect(accounts[4]).setTokenPrice(util.getPixelIds(60,60,amount,1)[0],  ethers.utils.parseEther((amount * price * 6).toString()))
 
     //Get market data for token 1 and 3
-    let market1 = await util.getMarketFacetContract().getMarketData(util.getPixelIds(5,5,amount,1)[0])
-    let market3 = await util.getMarketFacetContract().getMarketData(util.getPixelIds(50,50,amount,1)[0])
+    let market1 = await util.getMarketFacetContract().getMarketData(util.getPixelIds(20,20,amount,1)[0])
+    let market3 = await util.getMarketFacetContract().getMarketData(util.getPixelIds(60,60,amount,1)[0])
     //Check sale values are correct for token 1 and 3
     //State for markets are as follow: 0: pending, 1: for sale, 2: sold, 3: neutral
     assert.equal(market1[0].toString(), (amount * 4 * wei * price).toString(), "token price 1 wrong")
@@ -117,45 +128,45 @@ describe("Bitpixels ERC", async function () {
     assert.equal(market3[1], 1, "token state 3 wrong")
 
     //Transfer token 1 to new account
-    await util.getBitpixelsD2FacetContract().connect(accounts[3])['safeTransferFrom(address,address,uint256)'](accounts[3].address, accounts[5].address, util.getPixelIds(5,5,amount,1)[0])
-    market1 = await util.getMarketFacetContract().getMarketData(util.getPixelIds(5,5,amount,1)[0])
+    await util.getBitpixelsD2FacetContract().connect(accounts[3])['safeTransferFrom(address,address,uint256)'](accounts[3].address, accounts[5].address, util.getPixelIds(20,20,amount,1)[0])
+    market1 = await util.getMarketFacetContract().getMarketData(util.getPixelIds(20,20,amount,1)[0])
     //Check sale is stopped for token 1 after transfer
     assert.equal(market1[0].toNumber(), 0, "token price 1 wrong-2")
     assert.equal(market1[1], 3, "token state 1 wrong-2")
 
     //Transfer token back to acc3
-    await util.getBitpixelsD2FacetContract().connect(accounts[5])['safeTransferFrom(address,address,uint256)'](accounts[5].address, accounts[3].address, util.getPixelIds(5,5,amount,1)[0])
+    await util.getBitpixelsD2FacetContract().connect(accounts[5])['safeTransferFrom(address,address,uint256)'](accounts[5].address, accounts[3].address, util.getPixelIds(20,20,amount,1)[0])
     //Resale token 1 from acc3
-    await util.getMarketFacetContract().connect(accounts[3]).setTokenPrice(util.getPixelIds(5,5,amount,1)[0],  ethers.utils.parseEther((amount * price * 4).toString()))
+    await util.getMarketFacetContract().connect(accounts[3]).setTokenPrice(util.getPixelIds(20,20,amount,1)[0],  ethers.utils.parseEther((amount * price * 4).toString()))
     //Check sale can only be cancelled from owner account
     try{
-      await util.getMarketFacetContract().connect(accounts[5]).cancelTokenSale(util.getPixelIds(5,5,amount,1)[0])
+      await util.getMarketFacetContract().connect(accounts[5]).cancelTokenSale(util.getPixelIds(20,20,amount,1)[0])
     }catch (e) {
-      autResult = 7
+      autResult = 8
     }
-    assert.equal(7, autResult, 'Token cancel not authorized')
+    assert.equal(8, autResult, 'Token cancel not authorized')
     //Cancel token sale
-    await util.getMarketFacetContract().connect(accounts[3]).cancelTokenSale(util.getPixelIds(5,5,amount,1)[0])
+    await util.getMarketFacetContract().connect(accounts[3]).cancelTokenSale(util.getPixelIds(20,20,amount,1)[0])
     //Check if sale is cancelled
-    market1 = await util.getMarketFacetContract().getMarketData(util.getPixelIds(5,5,amount,1)[0])
+    market1 = await util.getMarketFacetContract().getMarketData(util.getPixelIds(20,20,amount,1)[0])
     assert.equal(market1[0].toNumber(), 0, "token price 1 wrong-3")
     assert.equal(market1[1], 3, "token state 1 wrong-3")
 
     //Restart sale
-    await util.getMarketFacetContract().connect(accounts[3]).setTokenPrice(util.getPixelIds(5,5,amount,1)[0],  ethers.utils.parseEther((amount * price * 4).toString()))
+    await util.getMarketFacetContract().connect(accounts[3]).setTokenPrice(util.getPixelIds(20,20,amount,1)[0],  ethers.utils.parseEther((amount * price * 4).toString()))
 
     //Try to buy token 1 with a low value then listing price
     try{
-      await util.getMarketFacetContract().connect(accounts[6]).buy(util.getPixelIds(5,5,amount,1)[0], {value: ethers.utils.parseEther((amount * 3 * price).toString())})
+      await util.getMarketFacetContract().connect(accounts[6]).buy(util.getPixelIds(20,20,amount,1)[0], {value: ethers.utils.parseEther((amount * 3 * price).toString())})
     }catch (e) {
-      autResult = 8
+      autResult = 9
     }
-    assert.equal(8, autResult, 'Token sale value was low')
+    assert.equal(9, autResult, 'Token sale value was low')
 
     //Buy token 1 from another account
-    await util.getMarketFacetContract().connect(accounts[6]).buy(util.getPixelIds(5,5,amount,1)[0], {value: ethers.utils.parseEther((amount * 4 * price).toString())})
+    await util.getMarketFacetContract().connect(accounts[6]).buy(util.getPixelIds(20,20,amount,1)[0], {value: ethers.utils.parseEther((amount * 4 * price).toString())})
     //Check sale is stopped
-    market1 = await util.getMarketFacetContract().getMarketData(util.getPixelIds(5,5,amount,1)[0])
+    market1 = await util.getMarketFacetContract().getMarketData(util.getPixelIds(20,20,amount,1)[0])
     assert.equal(market1[0].toNumber(), 0, "token price 1 wrong-4")
     assert.equal(market1[1], 2, "token state 1 wrong-4")
     //Check new owner is received
@@ -163,7 +174,18 @@ describe("Bitpixels ERC", async function () {
     //
     //Check fee receiver received its fees
     const balanceAddr2New = await ethers.provider.getBalance(accounts[2].address);
-    assert.equal(Math.floor((balanceAddr2New - balanceAddr2)/weiHalf), Math.floor(amount * 4 * price * wei * feePercentage / 1000 / weiHalf), 'fee not received')
+    assert.equal(Math.floor((balanceAddr2New - balanceAddr2)/weiHalf), Math.floor(amount * 4 * price * wei * feePercentage * (1000 - reflectionPercentage) / 1000 / 1000 / weiHalf), 'fee not received')
+    //Check reflection balance
+    const account6Reflection = await util.getReaderFacetContract().getReflectionBalance() * (await util.getBitpixelsD2FacetContract().balanceOf(accounts[6].address)).toNumber() / parseInt(await util.getBitpixelsD2FacetContract().totalSupply(), 10)
+    assert.equal(await util.getReaderFacetContract().getReflectionBalance(), amount * 4 * price * wei * feePercentage * reflectionPercentage / 1000 / 1000, 'reflection balance not updated')
+    assert.equal(await util.getReaderFacetContract().getReflectionBalances(accounts[6].address), account6Reflection, 'reflection balance not updated for address')
+    assert.equal(await util.getReaderFacetContract().getLastDividendAt(util.getPixelIds(20,20,amount,1)[0]), 0, 'reflection divident not updated for address')
+    await util.getReaderFacetContract().connect(accounts[6]).claimRewards();
+    assert.equal(await util.getReaderFacetContract().getCurrentReflectionBalance(), amount * 4 * price * wei * feePercentage * reflectionPercentage / 1000 / 1000 - account6Reflection, 'reflection balance not updated-2')
+    assert.equal(await util.getReaderFacetContract().getReflectionBalances(accounts[6].address), 0, 'reflection balance not updated for address-2')
+    assert.equal(await util.getReaderFacetContract().getLastDividendAt(util.getPixelIds(20,20,amount,1)[0]), account6Reflection, 'reflection divident not updated for address-2')
+
+
 
   })
 })

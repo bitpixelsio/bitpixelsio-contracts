@@ -6,10 +6,11 @@ import "../libraries/LibMeta.sol";
 import "../libraries/LibMarket.sol";
 import "../libraries/LibDiamond.sol";
 import "../libraries/LibERC721.sol";
+import "../libraries/LibReflection.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-contract MarketFacet  is IMarketPlace {
+contract MarketFacet  is IMarketPlace, ReentrancyGuard {
     AppStorage internal s;
 
     function getMarketData(uint256 tokenId) external override view returns(MarketData memory){
@@ -24,7 +25,7 @@ contract MarketFacet  is IMarketPlace {
         return s.feePercentage;
     }
 
-    function buy(uint256 _tokenId) external override payable{
+    function buy(uint256 _tokenId) external override payable nonReentrant{
         require(s.isMarketStarted == 1, "Market has not started");
         address tokenOwner = LibERC721._ownerOf(_tokenId);
         address payable seller = payable(address(tokenOwner));
@@ -38,11 +39,12 @@ contract MarketFacet  is IMarketPlace {
 
         if (s.Market[_tokenId].price >= 0) {
             if(s.feePercentage > 0){
+                uint256 reflection = LibReflection._splitBalance(msg.value);
                 uint256 fee = LibMarket.serviceFee(msg.value);
                 uint256 withFee = msg.value - fee;
 
                 seller.transfer(withFee);
-                s.feeReceiver.transfer(fee);
+                s.feeReceiver.transfer(fee - reflection);
             }else{
                 seller.transfer(msg.value);
             }
@@ -76,5 +78,10 @@ contract MarketFacet  is IMarketPlace {
         LibDiamond.enforceIsContractOwner();
         require(_feeReceiver != address(0), "No zero address");
         s.feeReceiver = payable(_feeReceiver);
+    }
+
+    function royaltyInfo(uint256, uint256 _salePrice) external view returns (address receiver, uint256 royaltyAmount){
+        receiver = s.feeReceiver;
+        royaltyAmount = LibMarket.serviceFee(_salePrice);
     }
 }

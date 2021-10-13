@@ -37,4 +37,17 @@ library LibERC721 {
             return result;
         }
     }
+
+    function isReserved(uint256 tokenId) internal pure returns(uint16){
+        uint256 x = (tokenId - 1) % 100;
+        uint256 y = (tokenId - 1 - x) / 100;
+        if((x < 15 && y < 15)
+         || (x > 84 && y < 15)
+         || (x < 15 && y > 84)
+         || (x > 84 && y > 84)
+         || (x > 44 && x < 55 && y > 44 && y < 55)){
+            return 1;
+        }
+        return 0;
+    }
 }

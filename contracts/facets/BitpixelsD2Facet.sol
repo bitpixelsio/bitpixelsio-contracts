@@ -9,6 +9,7 @@ import "../libraries/LibDiamond.sol";
 import "../libraries/LibMarket.sol";
 import "../libraries/LibRent.sol";
 import "../tokens/ERC721Diamond.sol";
+import "../libraries/LibReflection.sol";
 
 contract BitpixelsD2Facet is ERC721Diamond{
     constructor() {
@@ -25,32 +26,27 @@ contract BitpixelsD2Facet is ERC721Diamond{
 
     function claim(uint256 xCoordLeft, uint256 yCoordTop, uint256 width, uint256 height) public payable {
         require(s.isSaleStarted == 1, "Sale has not started");
-        require(xCoordLeft >= 0, "x Left should be positive");
-        require(yCoordTop >= 0, "y Top should be positive");
-        require(width >= 1, "x Right should be positive");
-        require(height >= 1, "x Bottom should be positive");
-        require(xCoordLeft < 100, "x Left is so high");
-        require(xCoordLeft + width < 101, "Width is so high");
-        require(yCoordTop < 100, "y Top is so high");
-        require(yCoordTop + height < 101, "Height is so high");
-        require(width > 0, "Wrong width");
-        require(height > 0, "Wrong height");
         uint256 amount = width * height;
-        require(amount <= 50, "Can only mint up to 50");
-        require(amount > 0, "Nothing to mint");
+        require(xCoordLeft >= 0 && yCoordTop >= 0 && width >= 1 && height >= 1 && xCoordLeft < 100 && xCoordLeft + width < 101 && yCoordTop < 100 && yCoordTop + height < 101 && amount <= 50, "Check Inputs");
         require(totalSupply() + amount < 10001, "Max supply exceeded");
-        require(AppConstants.publicPrice * amount <= msg.value, "AVAX value sent is too low");
+        require(msg.sender == LibDiamond.diamondStorage().contractOwner || AppConstants.publicPrice * amount <= msg.value, "AVAX value sent is too low");
 
         for (uint256 i = xCoordLeft; i < xCoordLeft + width; i++) {
             for (uint256 j = yCoordTop; j < yCoordTop + height; j++) {
                 uint256 tokenId = j * 100 + i;
+                if(LibERC721.isReserved(tokenId) == 1){
+                    LibDiamond.enforceIsContractOwner();
+                }else{
+                    require(msg.sender != LibDiamond.diamondStorage().contractOwner, "Owner can't mint");
+                }
                 require(!_exists(tokenId), "ERC721: token already minted");
             }
         }
         for (uint256 i = xCoordLeft; i < xCoordLeft + width; i++) {
             for (uint256 j = yCoordTop; j < yCoordTop + height; j++) {
-                uint256 tokenId = j * 100 + i;
+                uint256 tokenId = j * 100 + i + 1;
                 _safeMint(LibMeta.msgSender(), tokenId);
+                s.lastDividendAt[tokenId] = s.totalDividend;
             }
         }
     }
@@ -78,6 +74,7 @@ contract BitpixelsD2Facet is ERC721Diamond{
         if(to != address(0) && from != address(0)){
             LibMarket._cancelSale(tokenId);
             LibRent.claimRentCore(from);
+            LibReflection._claimRewardInternal(tokenId);
         }
     }
 

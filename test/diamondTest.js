@@ -74,11 +74,11 @@ describe('DiamondTest', async function () {
   it('check initialization', async () => {
     assert.equal(
       "Bitpixels for Avax",
-      await util.getBitpixelsD2FacetContract().name()
+      await util.getReaderFacetContract().name()
     )
     assert.equal(
       "BITPIXELS",
-      await util.getBitpixelsD2FacetContract().symbol()
+      await util.getReaderFacetContract().symbol()
     )
     assert.equal(
       await util.getReaderFacetContract().owner(),

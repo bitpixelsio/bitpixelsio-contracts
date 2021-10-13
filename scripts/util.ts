@@ -7,10 +7,10 @@ const addressesFuji = {
   diamond: '0x0Fb3dB4BD0A76837BA33399B23546625bc2E98f2',
   diamondInit: '0xc5f4D22A00b33FaAFCD21Ff720a8eD6605dE1216',
   DiamondLoupeFacet: '0x9c183Dc7e8ca0d65552cB34Bd2a6febBe6Df6cF2',
-  BitpixelsD2Facet: '0x14B5571Db7D7cc8aFC1E3DFB5416edBf69081BcC',
-  RentFacet: '0x04f2F9C93502505BE0b4b8C26004b9Bc74abD019',
-  ReaderFacet: '0xadA6B429deFBFF15ad6aa08DE25a6fF02253f6E6',
-  MarketFacet: '0xa9A8c93339a4414511b30acA6FA5ee30ad92101C'
+  BitpixelsD2Facet: '0x27Fe21f3B64f864B6276C2C2A330c0de5F19112D',
+  RentFacet: '0xAF612c2676158E14506D47FdDdCcD47e4BdB2E32',
+  ReaderFacet: '0x854AD81E984b814C5bEc5d3052D64EaF1ED8d5C7',
+  MarketFacet: '0x780C7B4B871377F1f2bd73c26fa064D02a0eB4eD'
 }
 
 let diamond: Contract
@@ -103,7 +103,7 @@ export function getPixelIds(x, y, width, height){
   const ids = [];
   for(let i = x; i < x + width; i++){
     for(let j = y; j < y + height; j++){
-      ids.push(j * 100 + i)
+      ids.push(j * 100 + i + 1)
     }
   }
   return ids;

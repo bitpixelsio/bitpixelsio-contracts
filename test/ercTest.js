@@ -31,8 +31,8 @@ describe("Bitpixels ERC", async function () {
 
       //Claim some nft from account 2 and 1
       let amount = 1;
-      const result = await instance.connect(accounts[2]).claim(1,1,amount,1, {value: ethers.utils.parseEther((amount * price).toString())})
-      const result2 = await instance.connect(accounts[1]).claim(2,2,amount,1, {value: ethers.utils.parseEther((amount * price).toString())})
+      const result = await instance.connect(accounts[2]).claim(20,20,amount,1, {value: ethers.utils.parseEther((amount * price).toString())})
+      const result2 = await instance.connect(accounts[1]).claim(30,30,amount,1, {value: ethers.utils.parseEther((amount * price).toString())})
 
       //Check total nfts minted are increased
       let res2 = parseInt(await instance.totalSupply(), 10);
@@ -42,34 +42,34 @@ describe("Bitpixels ERC", async function () {
       assert.equal(amount, await instance.balanceOf(accounts[2].address), 'acc2 not received')
       //Check ownerships are right for accounts claiming nfts
       for(let i = 0; i < amount; i++){
-          assert.equal(accounts[2].address, await instance.ownerOf(101 + i), 'not owned 2')
+          assert.equal(accounts[2].address, await instance.ownerOf(2021 + i), 'not owned 2')
       }
       for(let i = 0; i < amount; i++){
-          assert.equal(accounts[1].address, await instance.ownerOf(202 + i), 'not owned 1')
+          assert.equal(accounts[1].address, await instance.ownerOf(3031 + i), 'not owned 1')
       }
       //Transfer nfts from account 2 and 1 to account 3
       for(let i = 0; i < amount; i++){
-          await instance.connect(accounts[2])['safeTransferFrom(address,address,uint256)'](accounts[2].address, accounts[3].address, 101 + i)
+          await instance.connect(accounts[2])['safeTransferFrom(address,address,uint256)'](accounts[2].address, accounts[3].address, 2021 + i)
       }for(let i = 0; i < amount; i++){
-          await instance.connect(accounts[1])['safeTransferFrom(address,address,uint256)'](accounts[1].address, accounts[3].address, 202 + i)
+          await instance.connect(accounts[1])['safeTransferFrom(address,address,uint256)'](accounts[1].address, accounts[3].address, 3031 + i)
       }
       // //Check account 3 balance after transfers
       assert.equal(amount * 2, await instance.balanceOf(accounts[3].address), 'acc3 not received')
       // //Approve account 4 for account 3's first nft
-      await instance.connect(accounts[3]).approve(accounts[4].address, 101)
-      assert.equal(accounts[4].address, await instance.getApproved(101), 'acc4 not approved')
+      await instance.connect(accounts[3]).approve(accounts[4].address, 2021)
+      assert.equal(accounts[4].address, await instance.getApproved(2021), 'acc4 not approved')
       // //Check acc4 has no balance after approval
       assert.equal(0, await instance.balanceOf(accounts[4].address), 'acc4 balance 0')
       // //Check non approved accounts can not transfer
       let autResult = 0;
       try{
-          await instance.connect(accounts[6])['safeTransferFrom(address,address,uint256)'](accounts[3].address, accounts[5].address, 101)
+          await instance.connect(accounts[6])['safeTransferFrom(address,address,uint256)'](accounts[3].address, accounts[5].address, 2021)
       }catch (e) {
           autResult = 1
       }
       assert.equal(1, autResult, 'not authorized transfer')
       // //Check approved accounts can transfer
-      await instance.connect(accounts[4])['safeTransferFrom(address,address,uint256)'](accounts[3].address, accounts[5].address, 101)
+      await instance.connect(accounts[4])['safeTransferFrom(address,address,uint256)'](accounts[3].address, accounts[5].address, 2021)
       // //Check account 3 balance after transfer
       assert.equal(amount * 2 - 1, await instance.balanceOf(accounts[3].address), 'acc4 not transferred')
       // //Check account 5 get the token after account4(approved by account3) transferred it

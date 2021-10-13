@@ -8,7 +8,7 @@ import "../libraries/LibRent.sol";
 import "../libraries/LibMeta.sol";
 import "../libraries/LibERC721.sol";
 
-contract RentFacet is IRentablePixel {
+contract RentFacet is IRentablePixel, ReentrancyGuard {
     AppStorage internal s;
 
     function listRenting(uint256[] memory pixelIds, uint256 dailyPrice, RentTimeInput memory startTime, RentTimeInput memory endTime, uint16 minDaysToRent,
@@ -83,7 +83,7 @@ contract RentFacet is IRentablePixel {
         require(isCancelled > 0, "5");//"Nothing to cancel"
     }
 
-    function rentPixels(uint256[] memory pixelIds, RentTimeInput memory startTime, RentTimeInput memory endTime) external override payable{
+    function rentPixels(uint256[] memory pixelIds, RentTimeInput memory startTime, RentTimeInput memory endTime) external override payable nonReentrant{
         require(s.isRentStarted == 1, "1");//"Rent has not started"
         uint256 startTimestampDay; uint256 endTimestampDay;
         (startTimestampDay, endTimestampDay) = LibRent.checkTimeInputs(startTime, endTime);
@@ -127,11 +127,11 @@ contract RentFacet is IRentablePixel {
             }
             require(isFound > 0, "6");//"No possible rent option"
         }
-        require(totalValue <= msg.value, "AVAX value sent is too low");
+        require(totalValue <= msg.value, "7");//"AVAX value sent is too low"
         s.totalLockedValue += totalValue;
     }
 
-    function cancelRent(uint256[] memory pixelIds, RentTimeInput memory startTime, RentTimeInput memory endTime) external override{
+    function cancelRent(uint256[] memory pixelIds, RentTimeInput memory startTime, RentTimeInput memory endTime) external override nonReentrant{
         require(s.isRentStarted == 1, "1");//"Rent has not started"
         uint256 startTimestampDay; uint256 endTimestampDay;
         (startTimestampDay, endTimestampDay) = LibRent.checkTimeInputs(startTime, endTime);
@@ -162,8 +162,8 @@ contract RentFacet is IRentablePixel {
         }
     }
 
-    function claimRent() external override{
-        require(s.isRentStarted == 1, "Rent has not started");
+    function claimRent() external override nonReentrant{
+        require(s.isRentStarted == 1, "1");//Rent has not started
         LibRent.claimRentCore(LibMeta.msgSender());
     }
 }

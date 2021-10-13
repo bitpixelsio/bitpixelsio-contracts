@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/Counters.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
@@ -13,12 +12,14 @@ import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import "../libraries/LibAppStorage.sol";
 import "../libraries/LibMeta.sol";
 import "../libraries/LibERC721.sol";
+import "../libraries/LibMarket.sol";
 import { IDiamondLoupe } from "../interfaces/IDiamondLoupe.sol";
 import { IDiamondCut } from "../interfaces/IDiamondCut.sol";
 import { IERC173 } from "../interfaces/IERC173.sol";
+import { IERC2981 } from "../interfaces/IERC2981.sol";
 
 
-abstract contract ERC721Diamond is Context, ERC165, IERC721, IERC721Metadata, IERC721Enumerable {
+abstract contract ERC721Diamond is Context, ERC165, IERC721Enumerable {
     AppStorage internal s;
     using Address for address;
     using Strings for uint256;
@@ -31,6 +32,7 @@ abstract contract ERC721Diamond is Context, ERC165, IERC721, IERC721Metadata, IE
         interfaceId == type(IDiamondCut).interfaceId ||
         interfaceId == type(IDiamondLoupe).interfaceId ||
         interfaceId == type(IERC173).interfaceId ||
+        interfaceId == type(IERC2981).interfaceId ||
         super.supportsInterface(interfaceId);
     }
 
@@ -55,36 +57,11 @@ abstract contract ERC721Diamond is Context, ERC165, IERC721, IERC721Metadata, IE
         return LibERC721._ownerOf(tokenId);
     }
 
-    function name() public view virtual override returns (string memory) {
-        return s._name;
-    }
-
-    function symbol() public view virtual override returns (string memory) {
-        return s._symbol;
-    }
-
-    function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
+    function tokenURI(uint256 tokenId) public view virtual returns (string memory) {
         require(_exists(tokenId), "ERC721URIStorage: URI query for nonexistent token");
-
-        string memory _tokenURI = s._tokenURIs[tokenId];
-        string memory base = _baseURI();
-
-        // If there is no base URI, return the token URI.
-        if (bytes(base).length == 0) {
-            return _tokenURI;
-        }
-        // If both are set, concatenate the baseURI and tokenURI (via abi.encodePacked).
-        if (bytes(_tokenURI).length > 0) {
-            return string(abi.encodePacked(base, _tokenURI));
-        }
 
         string memory baseURI = _baseURI();
         return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
-    }
-
-    function _setTokenURI(uint256 tokenId, string memory _tokenURI) internal virtual {
-        require(_exists(tokenId), "ERC721URIStorage: URI set of nonexistent token");
-        s._tokenURIs[tokenId] = _tokenURI;
     }
 
     function _baseURI() internal view virtual returns (string memory) {
@@ -208,10 +185,6 @@ abstract contract ERC721Diamond is Context, ERC165, IERC721, IERC721Metadata, IE
         delete s._owners[tokenId];
 
         emit Transfer(owner, address(0), tokenId);
-
-        if (bytes(s._tokenURIs[tokenId]).length != 0) {
-            delete s._tokenURIs[tokenId];
-        }
     }
 
     function _transfer(
