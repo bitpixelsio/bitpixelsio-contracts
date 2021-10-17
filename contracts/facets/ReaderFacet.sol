@@ -196,4 +196,9 @@ contract ReaderFacet is IERC173, ReentrancyGuard {
             LibReflection._claimReward(pixelIndex);
         }
     }
+
+    function claimRent() external nonReentrant{
+        require(s.isRentStarted == 1, "1");//Rent has not started
+        LibRent.claimRentCore(LibMeta.msgSender());
+    }
 }

@@ -45,6 +45,7 @@ contract RentFacet is IRentablePixel, ReentrancyGuard {
             newRentData.monthlyDiscount = monthlyDiscount;
             newRentData.yearlyDiscount = yearlyDiscount;
             s.RentStorage[index].push(newRentData);
+            emit RentListing(index, startTimestampDay, endTimestampDay);
         }
     }
 
@@ -66,6 +67,7 @@ contract RentFacet is IRentablePixel, ReentrancyGuard {
                         if(rentData[j].tenant == address(0)){
                             rentData[j] = rentData[rentData.length - 1];
                             rentData.pop();
+                            emit CancelRent(index, 0, 0);
                             isCancelled++;
                         }
                     }else{
@@ -74,6 +76,7 @@ contract RentFacet is IRentablePixel, ReentrancyGuard {
                             rentData[j] = rentData[rentData.length - 1];
                             rentData.pop();
                             isCancelled++;
+                            emit CancelRent(index, startTimestampDay, endTimestampDay);
                             break;
                         }
                     }
@@ -120,6 +123,7 @@ contract RentFacet is IRentablePixel, ReentrancyGuard {
                                     rentData[j].minDaysToRent,  rentData[j].maxDaysToRent, rentData[j].minDaysBeforeRentCancel,  rentData[j].weeklyDiscount,  rentData[j].monthlyDiscount,  rentData[j].yearlyDiscount, 0));
                             }
                         }
+                        emit Rent(index, startTimestampDay, endTimestampDay, cost);
                         isFound = 1;
                         break;
                     }
@@ -155,15 +159,11 @@ contract RentFacet is IRentablePixel, ReentrancyGuard {
                     s.totalLockedValue -= cost;
                     rentData[j].tenant = address(0);
                     payable(address(LibMeta.msgSender())).transfer(cost);
+                    emit CancelRent(index, startTimestampDay, endTimestampDay);
                     break;
                 }
             }
             require(isFound > 0, "6");//"No possible rent option"
         }
-    }
-
-    function claimRent() external override nonReentrant{
-        require(s.isRentStarted == 1, "1");//Rent has not started
-        LibRent.claimRentCore(LibMeta.msgSender());
     }
 }

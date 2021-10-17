@@ -33,7 +33,7 @@ contract BitpixelsD2Facet is ERC721Diamond{
 
         for (uint256 i = xCoordLeft; i < xCoordLeft + width; i++) {
             for (uint256 j = yCoordTop; j < yCoordTop + height; j++) {
-                uint256 tokenId = j * 100 + i;
+                uint256 tokenId = j * 100 + i + 1;
                 if(LibERC721.isReserved(tokenId) == 1){
                     LibDiamond.enforceIsContractOwner();
                 }else{
@@ -79,7 +79,7 @@ contract BitpixelsD2Facet is ERC721Diamond{
     }
 
     function isApprovedForAll(address owner, address operator) public view override returns (bool) {
-        if(address(this) == operator){
+        if(address(this) == operator && s.isMarketStarted == 1){
             return true;
         }
         return super.isApprovedForAll(owner, operator);

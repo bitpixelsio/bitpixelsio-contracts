@@ -23,8 +23,8 @@ async function main () {
     console.log('tokenURI: ' + await getBitpixelsD2FacetContract().tokenURI(await getBitpixelsD2FacetContract().tokenByIndex(0)))
   }
   console.log('totalSupply: ' + await getBitpixelsD2FacetContract().totalSupply())
-  console.log('name: ' + await getBitpixelsD2FacetContract().name())
-  console.log('symbol: ' + await getBitpixelsD2FacetContract().symbol())
+  console.log('name: ' + await getReaderFacetContract().name())
+  console.log('symbol: ' + await getReaderFacetContract().symbol())
 }
 
 main()

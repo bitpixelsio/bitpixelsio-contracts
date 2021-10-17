@@ -84,7 +84,7 @@ describe("Bitpixels ERC", async function () {
 
       //Claim some nft for owner account and calculate total gas used
       let amount = 3;
-      const result = await util.getBitpixelsD2FacetContract().claim(5,5,amount,1, {value: ethers.utils.parseEther((amount * price).toString())})
+      const result = await util.getBitpixelsD2FacetContract().claim(14,67,amount,1, {value: ethers.utils.parseEther((amount * price).toString())})
       const trans = await ethers.provider.getTransactionReceipt(result.hash)
       const gasUsed = trans.gasUsed.toNumber();
       const gasPrice = result.gasPrice.toNumber();

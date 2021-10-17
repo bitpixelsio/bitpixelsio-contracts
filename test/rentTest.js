@@ -130,7 +130,7 @@ describe('RentTest', async function () {
         if(now2 - now - startTimeDelay == claimRentDay){
           assert.equal(Math.floor(ethVal * 10000), Math.floor(rentDailyPrice * (now2 - now - startTimeDelay) * (100 - weeklyDiscount) * 100 * ((1000 - feePercentage) / 1000)), 'tenant problem')
           const balanceAddr1 = await ethers.provider.getBalance(accounts[1].address);
-          const result = await instance.connect(accounts[1]).claimRent()
+          const result = await readerInstance.connect(accounts[1]).claimRent()
           console.log('Rent Claimed: ' + Math.floor(claim * (claimRentDay + 1) / claimRentDay / weiHalf) / 10000)
           const trans = await ethers.provider.getTransactionReceipt(result.hash)
           const gasUsed = trans.gasUsed.toNumber();
