@@ -1,12 +1,15 @@
 /* global ethers */
 /* eslint prefer-const: "off" */
-import { getReaderFacetContract, initContracts } from "./util";
+import { getFeeReceiverContract, getMarketFacetContract, getReaderFacetContract, initContracts } from "./util";
 const { assert } = require('chai')
 
 async function main () {
   await initContracts()
 
-  await getReaderFacetContract().flipSale()
+  // await getMarketFacetContract().setFeeReceiver(getFeeReceiverContract().address)
+  // await getFeeReceiverContract().flipControl()
+  // await getReaderFacetContract().flipMarket()
+  // await getReaderFacetContract().flipSale()
 }
 
 main()

@@ -58,7 +58,7 @@ async function main () {
   )
   assert.equal(
     facetAddresses[4],
-    await util.getDiamondLoupeFacetContract().facetAddress('0x3d0630a6')
+    await util.getDiamondLoupeFacetContract().facetAddress('0xb7251433')
   )
   assert.equal(
     facetAddresses[5],
@@ -74,11 +74,11 @@ async function main () {
     await util.getReaderFacetContract().symbol()
   )
   assert.equal(
-    await util.getReaderFacetContract().owner(),
+    await util.getFeeReceiverContract().address,
     await util.getMarketFacetContract().getFeeReceiver()
   )
   assert.equal(
-    150,
+    50,
     await util.getMarketFacetContract().getFeePercentage()
   )
   assert.equal(

@@ -18,6 +18,7 @@ async function main () {
   console.log('owner: ' + await getReaderFacetContract().owner())
   console.log('getFeeReceiver: ' + await getMarketFacetContract().getFeeReceiver())
   console.log('getFeePercentage: ' + await getMarketFacetContract().getFeePercentage())
+  console.log('getReflectionPercentage: ' + await getReaderFacetContract().getReflectionPercentage())
   const totalSupply = await getBitpixelsD2FacetContract().totalSupply()
   if(totalSupply > 0){
     console.log('tokenURI: ' + await getBitpixelsD2FacetContract().tokenURI(await getBitpixelsD2FacetContract().tokenByIndex(0)))

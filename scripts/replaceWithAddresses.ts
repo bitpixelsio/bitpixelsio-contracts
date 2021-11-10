@@ -10,7 +10,7 @@ async function main () {
   const addressesOld = {
     BitpixelsD2Facet: await util.getDiamondLoupeFacetContract().facetAddress('0x70a08231'),
     RentFacet: await util.getDiamondLoupeFacetContract().facetAddress('0x7e0a0c6b'),
-    ReaderFacet: await util.getDiamondLoupeFacetContract().facetAddress('0x3d0630a6'),
+    ReaderFacet: await util.getDiamondLoupeFacetContract().facetAddress('0xb7251433'),
     MarketFacet: await util.getDiamondLoupeFacetContract().facetAddress('0x11efbf61')
   }
 
@@ -73,7 +73,12 @@ async function main () {
   // call to init function
   const readerFacet = util.getReaderFacetContract()
   functionCall = readerFacet.interface.encodeFunctionData('init')
-  tx = await diamondCut.diamondCut(cut, diamond.address, functionCall)
+  const withInit = false
+  if(withInit){
+    tx = await diamondCut.diamondCut(cut, diamond.address, functionCall)
+  }else{
+    tx = await diamondCut.diamondCut(cut, ethers.constants.AddressZero, '0x', { gasLimit: 3500000 })
+  }
   // console.log('Diamond cut tx: ', tx.hash)
   receipt = await tx.wait()
   if (!receipt.status) {

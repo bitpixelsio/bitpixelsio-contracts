@@ -17,8 +17,8 @@ contract ReaderFacet is IERC173, ReentrancyGuard {
     function init() external {
         LibDiamond.enforceIsContractOwner();
         s.feeReceiver = payable(LibDiamond.contractOwner());
-        s.feePercentage = 150;
-        s.baseUri = "ipfs://QmRNA5p6Rvxxot2v9vysjGKmMvwaYt954irYBG4hWSojcn/";
+        s.feePercentage = 50;
+        s.baseUri = "ipfs://QmbHmTshtpK3c9GfZkQkBjHbCGxPk7RkS6iviyJJjTEdjH/";
         s._name = "Bitpixels for Avax";
         s._symbol = "BITPIXELS";
         s.limitMinDaysToRent = 30;
@@ -26,7 +26,7 @@ contract ReaderFacet is IERC173, ReentrancyGuard {
         s.limitMinDaysBeforeRentCancel = 10;
         s.limitMaxDaysForRent = 90;
         s._status = AppConstants._NOT_ENTERED;
-        s.reflectionPercentage = 200;
+        s.reflectionPercentage = 500;
     }
 
 
@@ -48,6 +48,10 @@ contract ReaderFacet is IERC173, ReentrancyGuard {
 
     function getTotalLockedValueByAddress(address _addr) public view returns(uint256){
         return s.totalLockedValueByAddress[_addr];
+    }
+
+    function getCreatorBalance() public view returns(uint256){
+        return s.creatorBalance;
     }
 
     function getSaleStarted() public view returns(uint256){
@@ -122,31 +126,19 @@ contract ReaderFacet is IERC173, ReentrancyGuard {
         s.reflectionPercentage = value;
     }
 
-    function claimableRent() external view returns(uint256){
+    function claimableRent(address _address) external view returns(uint256){
         require(s.isRentStarted == 1, "Rent has not started");
-        DateTime._DateTime memory _now = DateTime.parseTimestamp(block.timestamp);
-        uint256 nowTimestampDay = AppConstants.isTestMode == 1 ? block.timestamp : DateTime.toTimestamp(_now.year, _now.month, _now.day);
+        uint256[] memory pixelIds = LibERC721._tokensOfOwner(_address);
         uint256 rentTotal;
-        uint256[] memory pixelIds = LibERC721._tokensOfOwner(LibMeta.msgSender());
         for (uint256 i = 0; i < pixelIds.length ; i++) {
-            uint256 index = pixelIds[i];
-            IRentablePixel.RentData[] storage rentData = s.RentStorage[index];
-            for (uint256 j = 0; j < rentData.length ; j++) {
-                if(nowTimestampDay > rentData[j].startTimestamp && rentData[j].tenant != address(0)){
-                    uint256 maxTimeStamp = nowTimestampDay;
-                    if(nowTimestampDay > rentData[j].endTimestamp){
-                        maxTimeStamp = rentData[j].endTimestamp;
-                    }
-                    uint256 dayDifference = LibRent.toDayDifference(rentData[j].startTimestamp, maxTimeStamp) - rentData[j].rentCollectedDays;
-                    if(dayDifference > 0){
-                        uint256 cost = LibRent.calculateRentCost(rentData[j], rentData[j].startTimestamp, rentData[j].endTimestamp);
-                        rentTotal += cost * dayDifference / LibRent.toDayDifference(rentData[j].startTimestamp, rentData[j].endTimestamp);
-                    }
-                }
-            }
+            rentTotal += LibRent._claimableRentFor(pixelIds[i], 0);
         }
-        uint256 fee = LibMarket.serviceFee(rentTotal);
-        return rentTotal - fee;
+        return rentTotal;
+    }
+
+    function claimableRentFor(uint256 pixelId) external view returns(uint256){
+        require(s.isRentStarted == 1, "Rent has not started");
+        return LibRent._claimableRentFor(pixelId, 0);
     }
 
     function transferOwnership(address _newOwner) external override {
@@ -174,11 +166,6 @@ contract ReaderFacet is IERC173, ReentrancyGuard {
         return s.currentReflectionBalance;
     }
 
-    function currentRate() public view returns (uint256){
-        if(s._allTokens.length == 0) return 0;
-        return s.reflectionBalance / s._allTokens.length;
-    }
-
     function getReflectionBalances(address user) external view returns(uint256) {
         uint256 total = 0;
         uint256[] memory ownedPixels = LibERC721._tokensOfOwner(user);
@@ -191,14 +178,41 @@ contract ReaderFacet is IERC173, ReentrancyGuard {
 
     function claimRewards() external nonReentrant {
         uint256[] memory ownedPixels = LibERC721._tokensOfOwner(LibMeta.msgSender());
+        uint256 total;
+        uint256 count;
         for(uint256 i= 0; i < ownedPixels.length; i++){
             uint256 pixelIndex = ownedPixels[i];
-            LibReflection._claimReward(pixelIndex);
+            uint256 reward = LibReflection._claimRewardInternal(pixelIndex, 1);
+            if(reward > 0){
+                count += 1;
+                total += reward;
+            }
+            if(count > 100){
+                break;
+            }
+        }
+        if(total > 0){
+            s.currentReflectionBalance -= total;
+            payable(LibMeta.msgSender()).transfer(total);
         }
     }
 
     function claimRent() external nonReentrant{
         require(s.isRentStarted == 1, "1");//Rent has not started
-        LibRent.claimRentCore(LibMeta.msgSender());
+        LibRent.claimRentCore(LibERC721._tokensOfOwner(LibMeta.msgSender()), LibMeta.msgSender());
+    }
+
+    function withdraw() public {
+        LibDiamond.enforceIsContractOwner();
+        payable(LibMeta.msgSender()).transfer(address(this).balance);
+    }
+
+    function withdrawAmount(uint amount) public{
+        LibDiamond.enforceIsContractOwner();
+        payable(LibMeta.msgSender()).transfer(amount);
+    }
+
+    function tokensOfOwner(address _owner) public view returns(uint256[] memory ) {
+        return LibERC721._tokensOfOwner(_owner);
     }
 }

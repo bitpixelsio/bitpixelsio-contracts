@@ -15,10 +15,6 @@ contract BitpixelsD2Facet is ERC721Diamond{
     constructor() {
     }
 
-    function tokensOfOwner(address _owner) public view returns(uint256[] memory ) {
-        return LibERC721._tokensOfOwner(_owner);
-    }
-
     function setBaseUri(string memory newUri) public {
         LibDiamond.enforceIsContractOwner();
         s.baseUri = newUri;
@@ -51,16 +47,6 @@ contract BitpixelsD2Facet is ERC721Diamond{
         }
     }
 
-    function withdraw() public {
-        LibDiamond.enforceIsContractOwner();
-        payable(LibMeta.msgSender()).transfer(address(this).balance);
-    }
-
-    function withdrawAmount(uint amount) public{
-        LibDiamond.enforceIsContractOwner();
-        payable(LibMeta.msgSender()).transfer(amount);
-    }
-
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
         return super.tokenURI(tokenId);
     }
@@ -72,9 +58,21 @@ contract BitpixelsD2Facet is ERC721Diamond{
     function _beforeTokenTransfer(address from, address to, uint256 tokenId) override internal {
         super._beforeTokenTransfer(from, to, tokenId);
         if(to != address(0) && from != address(0)){
-            LibMarket._cancelSale(tokenId);
-            LibRent.claimRentCore(from);
-            LibReflection._claimRewardInternal(tokenId);
+            if(s.isMarketStarted == 1){
+                LibMarket._cancelSale(tokenId, 1);
+            }
+            if(!Address.isContract(from) && s.isRentStarted == 1){
+                uint256[] memory pixels = new uint256[](1);
+                pixels[0] = tokenId;
+                LibRent.claimRentCore(pixels, from);
+            }
+            if(!Address.isContract(from) && (s.isRentStarted == 1 || s.isMarketStarted == 1)){
+                if(from == LibDiamond.contractOwner()){
+                    s.lastDividendAt[tokenId] = s.totalDividend;
+                }else{
+                    LibReflection._claimRewardInternal(tokenId, 0);
+                }
+            }
         }
     }
 

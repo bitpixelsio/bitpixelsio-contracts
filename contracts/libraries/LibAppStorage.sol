@@ -51,6 +51,12 @@ struct AppStorage {
     mapping(uint256 => uint256) lastDividendAt;
     uint256 reflectionPercentage;
     uint256 currentReflectionBalance;
+
+    //pixel group id to marketdata
+    mapping(uint256 => IMarketPlace.MarketDataV2) MarketV2;
+    //pixel id to pixel group
+    mapping(uint256 => uint256) MarketV2Pixel;
+    uint256 creatorBalance;
 }
 
 library LibAppStorage {

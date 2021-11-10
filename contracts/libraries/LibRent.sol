@@ -21,12 +21,40 @@ library LibRent {
         return (startTimestampDay, endTimestampDay);
     }
 
-    function claimRentCore(address pixelOwner) internal returns(uint256){
+    function _claimableRentFor(uint256 pixelId, uint256 withFee) internal view returns(uint256){
         AppStorage storage s = LibAppStorage.diamondStorage();
+        require(s.isRentStarted == 1, "Rent has not started");
         DateTime._DateTime memory _now = DateTime.parseTimestamp(block.timestamp);
         uint256 nowTimestampDay = AppConstants.isTestMode == 1 ? block.timestamp : DateTime.toTimestamp(_now.year, _now.month, _now.day);
         uint256 rentTotal;
-        uint256[] memory pixelIds = LibERC721._tokensOfOwner(pixelOwner);
+        IRentablePixel.RentData[] storage rentData = s.RentStorage[pixelId];
+        for (uint256 j = 0; j < rentData.length ; j++) {
+            if(nowTimestampDay > rentData[j].startTimestamp && rentData[j].tenant != address(0)){
+                uint256 maxTimeStamp = nowTimestampDay;
+                if(nowTimestampDay > rentData[j].endTimestamp){
+                    maxTimeStamp = rentData[j].endTimestamp;
+                }
+                uint256 dayDifference = LibRent.toDayDifference(rentData[j].startTimestamp, maxTimeStamp) - rentData[j].rentCollectedDays;
+                if(dayDifference > 0){
+                    uint256 cost = LibRent.calculateRentCost(rentData[j], rentData[j].startTimestamp, rentData[j].endTimestamp);
+                    rentTotal += cost * dayDifference / LibRent.toDayDifference(rentData[j].startTimestamp, rentData[j].endTimestamp);
+                }
+            }
+        }
+        if(withFee > 0){
+            return rentTotal;
+        }else{
+            uint256 fee = LibMarket.serviceFee(rentTotal);
+            return rentTotal - fee;
+        }
+    }
+
+    function claimRentCore(uint256[] memory pixelIds, address owner) internal returns(uint256){
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        require(s.isRentStarted == 1, "Rent has not started");
+        DateTime._DateTime memory _now = DateTime.parseTimestamp(block.timestamp);
+        uint256 nowTimestampDay = AppConstants.isTestMode == 1 ? block.timestamp : DateTime.toTimestamp(_now.year, _now.month, _now.day);
+        uint256 rentTotal;
         for (uint256 i = 0; i < pixelIds.length ; i++) {
             uint256 index = pixelIds[i];
             IRentablePixel.RentData[] storage rentData = s.RentStorage[index];
@@ -39,7 +67,7 @@ library LibRent {
                     uint256 dayDifference = LibRent.toDayDifference(rentData[j].startTimestamp, maxTimeStamp) - rentData[j].rentCollectedDays;
                     if(dayDifference > 0){
                         uint256 cost = LibRent.calculateRentCost(rentData[j], rentData[j].startTimestamp, rentData[j].endTimestamp);
-                        uint256 currentRent = (cost * dayDifference) / LibRent.toDayDifference(rentData[j].startTimestamp, rentData[j].endTimestamp);
+                        uint256 currentRent = cost * dayDifference / LibRent.toDayDifference(rentData[j].startTimestamp, rentData[j].endTimestamp);
                         rentTotal += currentRent;
                         rentData[j].rentCollectedDays += uint16(dayDifference);
                         require(s.totalLockedValueByAddress[rentData[j].tenant] >= currentRent, "Rent is not refundable");
@@ -51,10 +79,9 @@ library LibRent {
         if(rentTotal > 0){
             require(s.totalLockedValue >= rentTotal, "Locked value is low then expected");
             s.totalLockedValue -= rentTotal;
-            uint256 reflection = LibReflection._splitBalance(rentTotal);
             uint256 fee = LibMarket.serviceFee(rentTotal);
-            payable(pixelOwner).transfer(rentTotal - fee);
-            s.feeReceiver.transfer(fee - reflection);
+            LibReflection._reflectDividend(fee);
+            payable(owner).transfer(rentTotal - fee);
             return rentTotal - fee;
         }
         return 0;

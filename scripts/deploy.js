@@ -59,7 +59,17 @@ async function deployDiamond () {
     throw Error(`Diamond upgrade failed: ${tx.hash}`)
   }
   console.log('Completed diamond cut')
-  return diamond.address
+
+  const feeReceiver = await ethers.getContractFactory('BitpixelsFeeReceiver')
+  const feeReceiverContract = await feeReceiver.deploy(diamond.address)
+  await feeReceiverContract.deployed()
+  const marketFacet = await ethers.getContractAt('MarketFacet', diamond.address)
+  await marketFacet.setFeeReceiver(feeReceiverContract.address)
+
+  await accounts[0].sendTransaction({to: feeReceiverContract.address, value: ethers.utils.parseEther("1")});
+  await feeReceiverContract.flipControl()
+
+  return {diamond: diamond.address, feeReceiver: feeReceiverContract.address}
 }
 
 // We recommend this pattern to be able to use async/await everywhere

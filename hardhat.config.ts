@@ -4,7 +4,7 @@ import { BigNumber } from "ethers"
 import "@nomiclabs/hardhat-waffle"
 import "hardhat-contract-sizer"
 import "@nomiclabs/hardhat-etherscan";
-import { getAccountsFuji, getAccountsMainnet } from "./private";
+import { etherscanApiKey, getAccountsFuji, getAccountsMainnet } from "./private";
 
 const FORK_FUJI = false
 const FORK_MAINNET = false
@@ -44,13 +44,13 @@ export default {
   },
   networks: {
     hardhat: {
-      gasPrice: 225000000000,
+      gasPrice: 35000000000,
       chainId: !forkingData ? 43112 : undefined, //Only specify a chainId if we are not forking
       forking: forkingData
     },
     local: {
       url: 'http://localhost:9650/ext/bc/C/rpc',
-      gasPrice: 225000000000,
+      gasPrice: 35000000000,
       chainId: 43112,
       accounts: [
         "0x56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027",
@@ -67,15 +67,18 @@ export default {
     },
     fuji: {
       url: 'https://api.avax-test.network/ext/bc/C/rpc',
-      gasPrice: 225000000000,
+      gasPrice: 35000000000,
       chainId: 43113,
       accounts: getAccountsFuji()
     },
     mainnet: {
       url: 'https://api.avax.network/ext/bc/C/rpc',
-      gasPrice: 225000000000,
+      gasPrice: 35000000000,
       chainId: 43114,
       accounts: getAccountsMainnet()
     }
+  },
+  etherscan: {
+    apiKey: etherscanApiKey()
   }
 }
